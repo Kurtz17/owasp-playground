@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-night font-sans text-cream antialiased;
+  }
+
+  ::selection {
+    background: #ff5638;
+    color: #0e0e11;
+  }
+
+  /* Cincin fokus konsisten untuk pengguna keyboard (aksesibilitas) */
+  :focus-visible {
+    outline: 2px solid rgba(255, 86, 56, 0.75);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  /* Jangan tampilkan cincin saat interaksi mouse pada elemen non-fokusabel */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Hormati preferensi kurangi gerakan */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Eyebrow: label kecil small-caps ala majalah */
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.18em] text-cream-faint;
+  }
+
+  /* Baris meta: item dipisah titik tengah, bukan badge berkotak */
+  .metaline {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] uppercase tracking-[0.14em] text-cream-faint;
+  }
+  .metaline > * + *::before {
+    content: "·";
+    @apply mr-3 text-cream-faint/60;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #26242c;
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #6b6963;
+  }
+}
