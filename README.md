@@ -1,99 +1,167 @@
+<div align="center">
+
 # OWASP Top 10 Interactive Playground
 
-An interactive web security education platform for learning the **OWASP Top 10 (2021)** vulnerabilities through hands-on, client-side simulations. All demos run **entirely in the browser** — no real vulnerable backend involved. Built for education & portfolio purposes. Bilingual support (English / Indonesian).
+**Learn web security by breaking things — safely.**
 
-## Stack
+An interactive education platform covering all 10 OWASP Top 10 (2021) vulnerabilities
+through hands-on, client-side simulations. No real servers harmed.
 
-- **Next.js 14** (App Router) + **TypeScript**
-- **Tailwind CSS**
-- Font: Space Grotesk + JetBrains Mono via `next/font`
-- Bilingual (English / Indonesian) via lightweight context-based i18n — no external library
+[![Next.js](https://img.shields.io/badge/Next.js_14-000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
+
+</div>
+
+---
+
+## Why This Exists
+
+Most OWASP learning resources are walls of text. This project takes a different approach:
+you **run the exploit**, **watch it work**, then **prove the fix holds** — all inside
+your browser with zero setup and zero risk.
+
+**Key highlights:**
+
+- 10 complete interactive modules with Vulnerable vs Fixed demos
+- Client-side only — no vulnerable backend, no Docker, no setup headaches
+- Bilingual (English / Indonesian) with instant language switching
+- Animated visualizations: rainbow tables, brute-force meters, CVE scanners, attack streams
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Typography | Space Grotesk + JetBrains Mono (`next/font`) |
+| i18n | Custom React Context — no external library |
+| Deployment | Static export / Vercel |
+
+---
 
 ## Getting Started
 
 ```bash
+git clone https://github.com/Kurtz17/owasp-playground.git
+cd owasp-playground
 npm install
-npm run dev      # http://localhost:3000
+npm run dev
 ```
 
-Production build:
+Open [http://localhost:3000](http://localhost:3000) and start breaking things.
 
-```bash
-npm run build
-npm run start
-```
+---
+
+## Module Coverage
+
+All **10 categories** are fully implemented with bilingual theory and interactive demos.
+
+| Code | Category | Demo Type |
+|------|----------|-----------|
+| A01 | Broken Access Control | IDOR — change account ID, leak another user's data |
+| A02 | Cryptographic Failures | Animated rainbow table — MD5 without salt vs bcrypt |
+| A03 | Injection | Two labs — SQL Injection login bypass & reflected XSS |
+| A04 | Insecure Design | Business logic abuse — stack vouchers until total goes negative |
+| A05 | Security Misconfiguration | Three labs — default creds, verbose errors, exposed files |
+| A06 | Vulnerable Components | Animated CVE scanner — outdated deps vs patched versions |
+| A07 | Auth Failures | Two labs — brute-force with lockout & password strength meter |
+| A08 | Data Integrity Failures | Update installer — signature verification vs blind install |
+| A09 | Logging & Monitoring | Animated attack stream — silent (no logs) vs triggered alerts |
+| A10 | SSRF | URL fetcher — cloud metadata leak vs IP blocking + allowlist |
+
+---
 
 ## Project Structure
 
 ```
 app/
-  layout.tsx              # Root layout + AppShell (sidebar)
-  page.tsx                # Landing: hero, info, 10-module grid
-  not-found.tsx           # 404 page
-  module/[slug]/page.tsx  # Dynamic route for each module (SSG)
+  layout.tsx                # Root layout + global providers
+  page.tsx                  # Landing page (hero + module index)
+  not-found.tsx             # 404 page
+  module/[slug]/page.tsx    # Dynamic route per module (SSG)
+
 components/
-  AppShell.tsx            # Shell: sidebar + mobile topbar
-  Sidebar.tsx             # 10-category navigation (collapsible + responsive)
-  ModuleIndex.tsx         # Module index grid on landing
-  ModulePage.tsx          # Module template: Theory / Vulnerable / Fixed tabs
-  Badges.tsx              # Difficulty level, status, and time badges
-  LanguageProvider.tsx    # i18n context provider
-  LanguageToggle.tsx      # EN/ID language switch
-  demo/                   # Reusable demo UI primitives
-  demos/                  # Interactive demo components (A01–A10)
-  motion/                 # Animation components (Reveal, CountUp)
+  AppShell.tsx              # Sidebar + mobile topbar shell
+  Sidebar.tsx               # Collapsible navigation (10 modules)
+  ModulePage.tsx            # Module template: Theory / Vulnerable / Fixed tabs
+  ModuleIndex.tsx           # Module grid on landing
+  LanguageProvider.tsx      # i18n context provider
+  LanguageToggle.tsx        # EN/ID pill toggle
+  Badges.tsx                # Difficulty, status, and time badges
+  demo/                     # Reusable demo primitives
+    CodeBlock.tsx            #   Syntax-highlighted code with line markers
+    DemoConsole.tsx          #   Console-styled output area
+    DemoLayout.tsx           #   Standard demo frame
+  demos/                    # Interactive demos (A01 – A10)
+    registry.tsx             #   Central component registry
+  motion/                   # Animation utilities
+    Reveal.tsx               #   Scroll-triggered fade-in
+    CountUp.tsx              #   Animated number counter
+
 lib/
-  modules.ts             # Single source of truth for all 10 modules
-  i18n.ts                # i18n types and configuration
-  demos/                 # Demo data and logic (a01–a10)
+  modules.ts                # Single source of truth for all 10 modules
+  i18n.ts                   # i18n types and config (Lang, Localized<T>)
+  demos/                    # Demo data and simulation logic (a01 – a10)
 ```
 
-## Adding / Editing Modules
+---
 
-All metadata (code, slug, name, description, difficulty, status, theory) lives in
-[`lib/modules.ts`](lib/modules.ts). The sidebar, landing page, and routing all read
-from this single file.
+## How the Demo System Works
 
-Change `status: "segera-hadir"` to `"tersedia"` when a module's content is ready.
+Each module follows a consistent three-layer architecture:
 
-## Module Status
+```
+lib/demos/a0X.ts          Data + simulation logic (vulnerable & fixed functions)
+        |
+components/demos/A0X.tsx  UI — exports <Vulnerable /> and <Fixed />
+        |
+components/demos/registry.tsx  Maps module slug -> component pair
+        |
+components/ModulePage.tsx      Auto-resolves demo from registry by slug
+```
 
-All **10 modules are complete** — full bilingual theory + interactive Vulnerable &
-Fixed demos with annotated code panels and attack flow strips.
+**To add a new demo:**
 
-- **A01 Broken Access Control** — IDOR demo (change account ID → another user's data leaks).
-- **A02 Cryptographic Failures** — Animated rainbow table (MD5 without salt vs bcrypt) with real MD5 hashes.
-- **A03 Injection** — Two labs (SQL Injection login bypass & XSS) with sub-toggles and payload chips.
-- **A04 Insecure Design** — Business logic abuse (stacking vouchers until total goes negative) vs threat-modeled flow.
-- **A05 Security Misconfiguration** — Three labs (default credentials, verbose errors, exposed sensitive files).
-- **A06 Vulnerable & Outdated Components** — Animated CVE scanner (outdated dependencies vs patched versions).
-- **A07 Auth Failures** — Two labs (animated brute-force with lockout & password strength meter).
-- **A08 Software & Data Integrity Failures** — Update installer (signature verification vs installing without checks).
-- **A09 Security Logging & Monitoring Failures** — Animated attack stream (silent with no logs vs triggered alerts).
-- **A10 SSRF** — URL fetcher (cloud metadata & internal services vs internal IP blocking + allowlist).
+1. Create `lib/demos/<code>.ts` with vulnerable and secure logic
+2. Create `components/demos/<Code>.tsx` exporting `Vulnerable` and `Fixed`
+3. Register in `components/demos/registry.tsx` with `key = module slug`
 
-## Adding Interactive Demos
+Modules without a registered demo gracefully fall back to a placeholder.
 
-Reusable demo components live in [`components/demo/`](components/demo/):
+---
 
-- `CodeBlock` — Monospace code with highlighted lines (red = vulnerable, green = secure)
-- `DemoConsole` + `DataRow` — Console-styled output area
-- `DemoLayout` — Standard frame for each demo tab
+## Bilingual System
 
-Steps to add a new module demo (following the A01 pattern):
+The i18n system is intentionally lightweight — a single React Context with no external dependencies.
 
-1. Create data + logic in `lib/demos/<code>.ts` (vulnerable & secure version functions).
-2. Create component in `components/demos/<Code>.tsx` exporting `Vulnerable` and `Fixed`.
-3. Register in [`components/demos/registry.tsx`](components/demos/registry.tsx) with key = module slug.
+- **Default language:** English
+- **Persistence:** `localStorage` (survives page reload)
+- **Toggle:** `[ EN | ID ]` pill in the sidebar and mobile topbar
+- **Usage:** wrap translatable strings in `Localized<T>` = `{ en, id }`, resolve with `t(value)`
 
-`ModulePage` automatically picks up demos from the registry; modules without a registered demo show a placeholder.
+```tsx
+const { t } = useLang();
 
-## Bilingual (i18n)
+return <h1>{t({ en: "Learn by doing", id: "Belajar sambil praktik" })}</h1>;
+```
 
-Language is stored in context ([`components/LanguageProvider.tsx`](components/LanguageProvider.tsx))
-and persisted via `localStorage`. The `[ EN | ID ]` toggle is in the sidebar and
-mobile topbar. Translatable content uses the `Localized<T>` type = `{ id, en }`
-([`lib/i18n.ts`](lib/i18n.ts)); retrieve the active version with `t(value)` from
-`useLang()`. When adding new modules/demos, write text as `{ id, en }`.
+---
 
-Default language is **English**. Users can switch to Indonesian at any time via the language toggle.
+## License
+
+MIT — feel free to use this for learning, teaching, or building upon.
+
+---
+
+<div align="center">
+
+**Built for education and portfolio purposes.**
+
+Reference: [owasp.org/Top10](https://owasp.org/Top10/)
+
+</div>
