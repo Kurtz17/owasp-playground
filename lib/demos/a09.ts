@@ -1,6 +1,3 @@
-// Demo A09 Logging & Monitoring Failures: serangan yang sama pada versi tanpa
-// pemantauan (lolos senyap) vs versi yang mencatat + memicu alert. In-memory.
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
 
@@ -13,7 +10,6 @@ export interface SecurityEvent {
   level: EventLevel;
 }
 
-// Garis waktu serangan yang sama untuk kedua versi.
 export const EVENTS: SecurityEvent[] = [
   {
     time: "02:14:03",
@@ -59,24 +55,18 @@ export const EVENTS: SecurityEvent[] = [
   },
 ];
 
-// Jumlah login gagal berturut sebelum aturan alert menyala.
 export const ALERT_THRESHOLD = 5;
 
 export interface Detection {
   detected: boolean;
-  // Indeks event tempat alert menyala (null jika tak pernah).
   alertIndex: number | null;
-  // Berapa event yang tercatat di log.
   logged: number;
 }
 
-// VERSI RENTAN: tidak ada pencatatan maupun pemantauan.
 export function detectVulnerable(): Detection {
   return { detected: false, alertIndex: null, logged: 0 };
 }
 
-// VERSI AMAN: setiap event dicatat; setelah ALERT_THRESHOLD login gagal,
-// aturan alerting menyala.
 export function detectFixed(): Detection {
   let failures = 0;
   let alertIndex: number | null = null;
@@ -109,14 +99,17 @@ export const FLOW: Record<"vuln" | "fixed", Localized[]> = {
 };
 
 export const VULN_CODE: LocalizedCodeLine[] = [
-  { text: "function tanganiLogin(req, berhasil) {" },
-  { text: "  if (!berhasil) {" },
+  { text: "function handleLogin(req, ok) {" },
+  { text: "  if (!ok) {" },
   {
-    text: "    // Kegagalan tidak dicatat, tidak ada yang memantau.",
+    text: {
+      id: "    // Kegagalan tidak dicatat, tidak ada yang memantau.",
+      en: "    // The failure isn't logged, nobody is watching.",
+    },
     highlight: "vuln",
   },
   {
-    text: "    return tolak();",
+    text: "    return reject();",
     highlight: "vuln",
     note: {
       id: "Tanpa log dan tanpa alert, ribuan percobaan login bisa berlalu tanpa jejak. Serangan baru ketahuan jauh setelah kerusakan terjadi, kalau ketahuan sama sekali.",
@@ -128,10 +121,10 @@ export const VULN_CODE: LocalizedCodeLine[] = [
 ];
 
 export const FIXED_CODE: LocalizedCodeLine[] = [
-  { text: "function tanganiLogin(req, berhasil) {" },
-  { text: "  if (!berhasil) {" },
+  { text: "function handleLogin(req, ok) {" },
+  { text: "  if (!ok) {" },
   {
-    text: "    logger.warn('login_gagal', { ip: req.ip, user });",
+    text: "    logger.warn('login_failed', { ip: req.ip, user });",
     highlight: "safe",
     note: {
       id: "Catat setiap kejadian penting dengan konteks yang cukup (siapa, dari mana, kapan) tanpa membocorkan data sensitif.",
@@ -139,11 +132,11 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
     },
   },
   {
-    text: "    if (gagalDari(req.ip) >= AMBANG) {",
+    text: "    if (failedFrom(req.ip) >= LIMIT) {",
     highlight: "safe",
   },
   {
-    text: "      alert.picu('brute_force', req.ip);",
+    text: "      alert.trigger('brute_force', req.ip);",
     highlight: "safe",
     note: {
       id: "Aturan alerting mengubah log menjadi tindakan: begitu ambang terlampaui, tim keamanan langsung diberi tahu untuk merespons.",
@@ -151,7 +144,7 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
     },
   },
   { text: "    }" },
-  { text: "    return tolak();" },
+  { text: "    return reject();" },
   { text: "  }" },
   { text: "}" },
 ];

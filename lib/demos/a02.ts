@@ -1,16 +1,11 @@
-// Demo A02 Cryptographic Failures: rainbow-table melawan MD5 tanpa salt vs bcrypt.
-// Hash MD5 dihitung sungguhan; semua in-memory.
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
 
 export interface LeakedRow {
   username: string;
-  // Kata sandi asli (untuk verifikasi demo; di dunia nyata tak tersimpan).
   plaintext: string;
   md5: string;
   bcrypt: string;
-  // true jika kata sandi ada di daftar umum (masuk rainbow table).
   common: boolean;
 }
 
@@ -45,8 +40,6 @@ export const LEAKED_ROWS: LeakedRow[] = [
   },
 ];
 
-// Rainbow table: peta hash MD5 -> kata sandi, hanya untuk kata sandi umum.
-// Inilah yang membuat MD5 tanpa salt berbahaya: pencarian instan.
 export const RAINBOW_TABLE: Record<string, string> = {
   e10adc3949ba59abbe56e057f20f883e: "123456",
   "5f4dcc3b5aa765d61d8327deb882cf99": "password",
@@ -61,12 +54,9 @@ export type CrackStatus = "cracked" | "safe";
 export interface CrackResult {
   row: LeakedRow;
   status: CrackStatus;
-  // Kata sandi hasil crack, bila berhasil.
   recovered: string | null;
 }
 
-// VERSI RENTAN: cari hash MD5 tiap baris di rainbow table.
-// Kata sandi umum langsung terbongkar.
 export function crackVulnerable(row: LeakedRow): CrackResult {
   const recovered = RAINBOW_TABLE[row.md5] ?? null;
   return recovered
@@ -74,10 +64,7 @@ export function crackVulnerable(row: LeakedRow): CrackResult {
     : { row, status: "safe", recovered: null };
 }
 
-// VERSI AMAN: kolom tersimpan berupa bcrypt yang bersalt. Rainbow table
-// (yang berbasis hash tanpa salt) tidak akan pernah cocok.
 export function crackFixed(row: LeakedRow): CrackResult {
-  // bcrypt tidak bisa dicari di rainbow table biasa: selalu "aman" di sini.
   return { row, status: "safe", recovered: null };
 }
 
@@ -101,7 +88,7 @@ export const FLOW: Record<"vuln" | "fixed", Localized[]> = {
 export const VULN_CODE: LocalizedCodeLine[] = [
   { text: "import { createHash } from 'crypto';" },
   { text: "" },
-  { text: "function simpanKataSandi(user, password) {" },
+  { text: "function storePassword(user, password) {" },
   {
     text: "  const hash = createHash('md5')",
     highlight: "vuln",
@@ -119,7 +106,7 @@ export const VULN_CODE: LocalizedCodeLine[] = [
 export const FIXED_CODE: LocalizedCodeLine[] = [
   { text: "import bcrypt from 'bcrypt';" },
   { text: "" },
-  { text: "async function simpanKataSandi(user, password) {" },
+  { text: "async function storePassword(user, password) {" },
   {
     text: "  const hash = await bcrypt.hash(password, 12);",
     highlight: "safe",

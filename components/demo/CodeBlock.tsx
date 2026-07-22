@@ -1,39 +1,32 @@
 import { Fragment } from "react";
 import type { Lang, Localized } from "@/lib/i18n";
 
-// Menampilkan potongan kode mono dengan penomoran baris, penyorotan baris
-// ("vuln" merah / "safe" hijau), dan anotasi callout yang menunjuk langsung
-// ke baris tertentu untuk menjelaskan letak kerentanan atau perbaikannya.
-// Dipakai ulang oleh seluruh modul demo.
-
 export type LineHighlight = "vuln" | "safe";
 
 export interface CodeLine {
   text: string;
   highlight?: LineHighlight;
-  // Callout yang muncul tepat di bawah baris ini.
   note?: string;
 }
 
-// Versi baris kode dengan anotasi dwibahasa (dipakai di data modul).
-export interface LocalizedCodeLine extends Omit<CodeLine, "note"> {
+export interface LocalizedCodeLine {
+  text: string | Localized;
+  highlight?: LineHighlight;
   note?: Localized;
 }
 
-// Pilih versi bahasa untuk anotasi tiap baris kode.
 export function localizeCode(
   lines: LocalizedCodeLine[],
   lang: Lang,
 ): CodeLine[] {
   return lines.map((line) => ({
-    text: line.text,
+    text: typeof line.text === "string" ? line.text : line.text[lang],
     highlight: line.highlight,
     note: line.note ? line.note[lang] : undefined,
   }));
 }
 
 interface CodeBlockProps {
-  // Nama file/judul yang tampil di header, mis. "server/account.ts"
   filename: string;
   lines: CodeLine[];
 }

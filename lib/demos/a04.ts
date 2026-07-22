@@ -1,6 +1,3 @@
-// Demo A04 Insecure Design: penyalahgunaan logika bisnis (voucher ditumpuk).
-// Poin utamanya: kodenya benar; yang cacat adalah desain (aturan yang tak pernah ada).
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
 
@@ -12,7 +9,6 @@ export const ITEM_PRICE = 120000;
 export const VOUCHER = { code: "HEMAT40", value: 40000 };
 
 export interface CartState {
-  // Berapa kali voucher sudah diterapkan.
   applied: number;
   total: number;
 }
@@ -23,9 +19,6 @@ export type ApplyResult =
   | { kind: "applied"; state: CartState }
   | { kind: "rejected"; state: CartState };
 
-// VERSI RENTAN: kode menghitung diskon dengan benar, tetapi tidak ada aturan
-// yang membatasi berapa kali voucher dipakai atau menahan total di angka nol.
-// Total bisa menjadi negatif: toko justru "berutang" ke pembeli.
 export function applyVoucherVulnerable(state: CartState): ApplyResult {
   return {
     kind: "applied",
@@ -36,8 +29,6 @@ export function applyVoucherVulnerable(state: CartState): ApplyResult {
   };
 }
 
-// VERSI AMAN: alur sudah di-threat-model. Voucher hanya boleh sekali per
-// pesanan, dan total tidak boleh turun di bawah nol.
 export function applyVoucherFixed(state: CartState): ApplyResult {
   if (state.applied >= 1) {
     return { kind: "rejected", state };
@@ -51,7 +42,6 @@ export function applyVoucherFixed(state: CartState): ApplyResult {
   };
 }
 
-// Format angka menjadi Rupiah, dengan tanda minus di depan bila negatif.
 export function formatRupiah(n: number): string {
   const abs = Math.abs(n).toLocaleString("id-ID");
   return n < 0 ? `- Rp ${abs}` : `Rp ${abs}`;
@@ -71,9 +61,12 @@ export const FLOW: Record<"vuln" | "fixed", Localized[]> = {
 };
 
 export const VULN_CODE: LocalizedCodeLine[] = [
-  { text: "function terapkanVoucher(cart, voucher) {" },
+  { text: "function applyVoucher(cart, voucher) {" },
   {
-    text: "  // Perhitungannya benar, tapi tak ada aturan.",
+    text: {
+      id: "  // Perhitungannya benar, tapi tak ada aturan.",
+      en: "  // The math is right, but there's no rule.",
+    },
     highlight: "vuln",
   },
   {
@@ -89,16 +82,22 @@ export const VULN_CODE: LocalizedCodeLine[] = [
 ];
 
 export const FIXED_CODE: LocalizedCodeLine[] = [
-  { text: "function terapkanVoucher(cart, voucher) {" },
+  { text: "function applyVoucher(cart, voucher) {" },
   {
-    text: "  if (cart.voucherDipakai) {",
+    text: "  if (cart.voucherUsed) {",
     highlight: "safe",
     note: {
       id: "Aturan bisnis dari hasil threat modeling: satu voucher per pesanan. Aturan ini bagian dari desain, ditegakkan di server.",
       en: "A business rule from threat modeling: one voucher per order. This rule is part of the design, enforced on the server.",
     },
   },
-  { text: "    throw new Error('Voucher sudah dipakai');", highlight: "safe" },
+  {
+    text: {
+      id: "    throw new Error('Voucher sudah dipakai');",
+      en: "    throw new Error('Voucher already used');",
+    },
+    highlight: "safe",
+  },
   { text: "  }" },
   {
     text: "  cart.total = Math.max(0, cart.total - voucher.value);",
@@ -108,7 +107,7 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
       en: "The total must never drop below zero. Constrain values to a sensible range by design.",
     },
   },
-  { text: "  cart.voucherDipakai = true;" },
+  { text: "  cart.voucherUsed = true;" },
   { text: "  return cart;" },
   { text: "}" },
 ];

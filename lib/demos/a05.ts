@@ -1,10 +1,5 @@
-// Demo A05 Security Misconfiguration: kredensial default, error verbose,
-// dan berkas sensitif terekspos. Semua in-memory.
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
-
-// 1) KREDENSIAL DEFAULT
 
 export const DEFAULT_CREDS = [
   { username: "admin", password: "admin" },
@@ -12,7 +7,6 @@ export const DEFAULT_CREDS = [
   { username: "admin", password: "password" },
 ];
 
-// Kredensial admin yang benar (sudah diganti dari bawaan).
 export const REAL_ADMIN = { username: "admin", password: "K3l0la-2024!aman" };
 
 export type LoginKind = "default-open" | "ok" | "fail";
@@ -29,20 +23,16 @@ function isRealAdmin(u: string, p: string): boolean {
   return u === REAL_ADMIN.username && p === REAL_ADMIN.password;
 }
 
-// VERSI RENTAN: akun bawaan tidak pernah dinonaktifkan.
 export function loginVulnerable(u: string, p: string): LoginResult {
   if (isDefault(u, p)) return { kind: "default-open", username: u };
   if (isRealAdmin(u, p)) return { kind: "ok", username: u };
   return { kind: "fail", username: u };
 }
 
-// VERSI AMAN: kredensial bawaan dihapus/diganti saat pemasangan.
 export function loginFixed(u: string, p: string): LoginResult {
   if (isRealAdmin(u, p)) return { kind: "ok", username: u };
   return { kind: "fail", username: u };
 }
-
-// 2) PESAN ERROR VERBOSE
 
 export interface ErrorResponse {
   status: string;
@@ -81,8 +71,6 @@ const GENERIC_ERROR: ErrorResponse = {
 export function triggerError(mode: "vuln" | "fixed"): ErrorResponse {
   return mode === "vuln" ? VERBOSE_ERROR : GENERIC_ERROR;
 }
-
-// 3) FILE SENSITIF TEREKSPOS
 
 export interface ServedFile {
   sensitive: boolean;
@@ -186,7 +174,9 @@ export const FLOW: Record<
 };
 
 export const CREDS_VULN_CODE: LocalizedCodeLine[] = [
-  { text: "// Setup awal aplikasi" },
+  {
+    text: { id: "// Setup awal aplikasi", en: "// Initial app setup" },
+  },
   {
     text: "seedAdmin({ username: 'admin', password: 'admin' });",
     highlight: "vuln",
@@ -226,11 +216,17 @@ export const ERROR_VULN_CODE: LocalizedCodeLine[] = [
 export const ERROR_FIXED_CODE: LocalizedCodeLine[] = [
   { text: "app.use((err, req, res, next) => {" },
   {
-    text: "  logger.error(err);            // ke log internal",
+    text: {
+      id: "  logger.error(err);            // ke log internal",
+      en: "  logger.error(err);            // to internal log",
+    },
     highlight: "safe",
   },
   {
-    text: "  res.status(500).send('Terjadi kesalahan.');",
+    text: {
+      id: "  res.status(500).send('Terjadi kesalahan.');",
+      en: "  res.status(500).send('Something went wrong.');",
+    },
     highlight: "safe",
     note: {
       id: "Catat detail di log internal, tapi kirim hanya pesan umum ke pengguna. Sertakan ID insiden untuk penelusuran.",
@@ -253,7 +249,10 @@ export const FILE_VULN_CODE: LocalizedCodeLine[] = [
 
 export const FILE_FIXED_CODE: LocalizedCodeLine[] = [
   {
-    text: "app.use(blockDotfiles);   // tolak /.env, /.git, dll",
+    text: {
+      id: "app.use(blockDotfiles);   // tolak /.env, /.git, dll",
+      en: "app.use(blockDotfiles);   // block /.env, /.git, etc",
+    },
     highlight: "safe",
     note: {
       id: "Blokir berkas sensitif dan dotfile, dan jangan pernah menaruh rahasia di folder yang bisa diakses publik.",

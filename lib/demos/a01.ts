@@ -1,5 +1,3 @@
-// Demo A01 Broken Access Control (IDOR). Semua berjalan in-memory.
-
 import type { Localized } from "../i18n";
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 
@@ -42,15 +40,12 @@ export const ACCOUNTS: Account[] = [
   },
 ];
 
-// ID akun yang sedang login pada sesi demo.
 export const SESSION_USER_ID = 1;
 
 export function getSessionUser(): Account {
-  // SESSION_USER_ID selalu menunjuk ke akun yang ada, jadi cast aman.
   return ACCOUNTS.find((a) => a.id === SESSION_USER_ID) as Account;
 }
 
-// Rentang id valid, dipakai untuk teks bantuan di UI.
 export const MIN_ID = ACCOUNTS[0].id;
 export const MAX_ID = ACCOUNTS[ACCOUNTS.length - 1].id;
 
@@ -59,15 +54,12 @@ export type AccessResult =
   | { kind: "denied"; attemptedId: number }
   | { kind: "not-found"; attemptedId: number };
 
-// VERSI RENTAN: kembalikan akun dari id input tanpa cek kepemilikan (IDOR).
 export function getAccountVulnerable(requestedId: number): AccessResult {
   const account = ACCOUNTS.find((a) => a.id === requestedId);
   if (!account) return { kind: "not-found", attemptedId: requestedId };
-  // leaked = data bocor karena akun ini bukan milik sesi yang login.
   return { kind: "ok", account, leaked: account.id !== SESSION_USER_ID };
 }
 
-// VERSI AMAN: tolak lebih dulu jika id yang diminta bukan milik pengguna sesi.
 export function getAccountFixed(
   sessionUserId: number,
   requestedId: number,
@@ -94,8 +86,8 @@ export const FLOW: Record<"vuln" | "fixed", Localized[]> = {
 };
 
 export const VULN_CODE: LocalizedCodeLine[] = [
-  { text: "// GET /api/akun?id=<id>" },
-  { text: "function lihatAkun(req, res) {" },
+  { text: "// GET /api/account?id=<id>" },
+  { text: "function viewAccount(req, res) {" },
   {
     text: "  const id = Number(req.query.id);",
     note: {
@@ -105,7 +97,7 @@ export const VULN_CODE: LocalizedCodeLine[] = [
   },
   { text: "" },
   {
-    text: "  const akun = db.getAccount(id);",
+    text: "  const account = db.getAccount(id);",
     highlight: "vuln",
     note: {
       id: "Letak kerentanan: data diambil hanya berdasarkan id, tanpa memeriksa apakah id itu milik pengguna yang login. Inilah IDOR.",
@@ -113,13 +105,13 @@ export const VULN_CODE: LocalizedCodeLine[] = [
     },
   },
   { text: "" },
-  { text: "  return res.json(akun);" },
+  { text: "  return res.json(account);" },
   { text: "}" },
 ];
 
 export const FIXED_CODE: LocalizedCodeLine[] = [
-  { text: "// GET /api/akun?id=<id>" },
-  { text: "function lihatAkun(req, res) {" },
+  { text: "// GET /api/account?id=<id>" },
+  { text: "function viewAccount(req, res) {" },
   { text: "  const id = Number(req.query.id);" },
   { text: "" },
   {
@@ -131,7 +123,7 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
     },
   },
   {
-    text: "    return res.status(403).json({ error: 'Ditolak' });",
+    text: "    return res.status(403).json({ error: 'Denied' });",
     highlight: "safe",
     note: {
       id: "Tolak lebih dulu. Data tidak akan pernah dikirim kalau bukan milik pengguna.",
@@ -140,7 +132,7 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
   },
   { text: "  }", highlight: "safe" },
   { text: "" },
-  { text: "  const akun = db.getAccount(id);" },
-  { text: "  return res.json(akun);" },
+  { text: "  const account = db.getAccount(id);" },
+  { text: "  return res.json(account);" },
   { text: "}" },
 ];

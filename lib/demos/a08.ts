@@ -1,6 +1,3 @@
-// Demo A08 Software & Data Integrity Failures: pemasang update dengan/tanpa
-// verifikasi tanda tangan. Tanda tangan disimulasikan dengan hash deterministik.
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
 
@@ -9,15 +6,11 @@ export type PackageSource = "official" | "tampered";
 export interface UpdatePackage {
   source: PackageSource;
   version: string;
-  // Ringkasan isi paket.
   payload: string;
-  // Apakah paket menyisipkan kode jahat.
   malicious: boolean;
-  // Tanda tangan yang menyertai paket (bisa dipalsukan penyerang).
   signature: string;
 }
 
-// "Tanda tangan" simulasi: hash djb2 deterministik dari isi paket.
 export function sign(payload: string): string {
   let h = 5381;
   for (let i = 0; i < payload.length; i++) {
@@ -29,7 +22,6 @@ export function sign(payload: string): string {
 const LEGIT_PAYLOAD = "core.js · ui.js · api.js (build resmi v2.4.0)";
 const EVIL_PAYLOAD = "core.js · ui.js · api.js · backdoor.js (curi token sesi)";
 
-// Tanda tangan sah dari penerbit untuk isi resmi.
 export const TRUSTED_SIGNATURE = sign(LEGIT_PAYLOAD);
 
 export const OFFICIAL_PACKAGE: UpdatePackage = {
@@ -40,8 +32,6 @@ export const OFFICIAL_PACKAGE: UpdatePackage = {
   signature: TRUSTED_SIGNATURE,
 };
 
-// Penyerang mengubah isi paket, tetapi hanya bisa memakai ulang tanda tangan
-// lama (tidak bisa memalsukan tanda tangan untuk isi baru).
 export const TAMPERED_PACKAGE: UpdatePackage = {
   source: "tampered",
   version: "2.4.0",
@@ -54,7 +44,6 @@ export function getPackage(source: PackageSource): UpdatePackage {
   return source === "official" ? OFFICIAL_PACKAGE : TAMPERED_PACKAGE;
 }
 
-// Verifikasi: tanda tangan valid bila cocok dengan isi paket saat ini.
 export function verifySignature(pkg: UpdatePackage): boolean {
   return sign(pkg.payload) === pkg.signature;
 }
@@ -63,12 +52,10 @@ export type InstallResult =
   | { kind: "installed"; malicious: boolean }
   | { kind: "rejected" };
 
-// VERSI RENTAN: langsung pasang tanpa memverifikasi tanda tangan.
 export function installVulnerable(pkg: UpdatePackage): InstallResult {
   return { kind: "installed", malicious: pkg.malicious };
 }
 
-// VERSI AMAN: tolak paket yang tanda tangannya tidak valid.
 export function installFixed(pkg: UpdatePackage): InstallResult {
   if (!verifySignature(pkg)) return { kind: "rejected" };
   return { kind: "installed", malicious: pkg.malicious };
@@ -88,9 +75,12 @@ export const FLOW: Record<"vuln" | "fixed", Localized[]> = {
 };
 
 export const VULN_CODE: LocalizedCodeLine[] = [
-  { text: "async function pasangUpdate(pkg) {" },
+  { text: "async function installUpdate(pkg) {" },
   {
-    text: "  // Langsung pasang, apa pun isinya.",
+    text: {
+      id: "  // Langsung pasang, apa pun isinya.",
+      en: "  // Install right away, whatever the contents.",
+    },
     highlight: "vuln",
   },
   {
@@ -106,7 +96,7 @@ export const VULN_CODE: LocalizedCodeLine[] = [
 ];
 
 export const FIXED_CODE: LocalizedCodeLine[] = [
-  { text: "async function pasangUpdate(pkg) {" },
+  { text: "async function installUpdate(pkg) {" },
   {
     text: "  if (!verify(pkg.payload, pkg.signature, TRUSTED_KEY)) {",
     highlight: "safe",
@@ -116,7 +106,10 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
     },
   },
   {
-    text: "    throw new Error('Tanda tangan tidak valid');",
+    text: {
+      id: "    throw new Error('Tanda tangan tidak valid');",
+      en: "    throw new Error('Invalid signature');",
+    },
     highlight: "safe",
   },
   { text: "  }" },

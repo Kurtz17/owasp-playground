@@ -1,6 +1,3 @@
-// Demo A10 SSRF: fitur "ambil preview URL". Versi rentan mengambil URL apa pun
-// (termasuk metadata cloud/internal); versi aman memblokir IP internal + allowlist.
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
 
@@ -13,15 +10,11 @@ export type HostClass =
 
 export interface FetchResponse {
   status: string;
-  // Konten yang "dikembalikan" server yang di-fetch.
   body: string;
-  // Penjelasan singkat isi respons.
   caption: Localized;
-  // true bila respons ini membocorkan sesuatu yang sensitif.
   sensitive: boolean;
 }
 
-// "Jaringan" simulasi: cocokkan berdasarkan hostname.
 const NETWORK: Record<string, FetchResponse> = {
   "169.254.169.254": {
     status: "200 OK",
@@ -70,7 +63,6 @@ const NETWORK: Record<string, FetchResponse> = {
   },
 };
 
-// Host eksternal yang diizinkan pada versi aman.
 export const ALLOWLIST = ["api.cuaca.example.com"];
 
 export function parseHost(url: string): string | null {
@@ -111,7 +103,6 @@ function lookup(host: string): FetchResponse | null {
   return NETWORK[host] ?? null;
 }
 
-// VERSI RENTAN: fetch apa pun, tanpa memeriksa tujuan.
 export function fetchVulnerable(url: string): SsrfResult {
   const host = parseHost(url);
   if (host === null) return { kind: "invalid" };
@@ -120,7 +111,6 @@ export function fetchVulnerable(url: string): SsrfResult {
   return { kind: "ok", host, response };
 }
 
-// VERSI AMAN: tolak alamat internal, lalu wajibkan host ada di allowlist.
 export function fetchFixed(url: string): SsrfResult {
   const host = parseHost(url);
   if (host === null) return { kind: "invalid" };
@@ -146,9 +136,12 @@ export const FLOW: Record<"vuln" | "fixed", Localized[]> = {
 };
 
 export const VULN_CODE: LocalizedCodeLine[] = [
-  { text: "async function ambilPreview(url) {" },
+  { text: "async function fetchPreview(url) {" },
   {
-    text: "  // URL dari pengguna langsung di-fetch server.",
+    text: {
+      id: "  // URL dari pengguna langsung di-fetch server.",
+      en: "  // The user's URL is fetched by the server directly.",
+    },
     highlight: "vuln",
   },
   {
@@ -164,7 +157,7 @@ export const VULN_CODE: LocalizedCodeLine[] = [
 ];
 
 export const FIXED_CODE: LocalizedCodeLine[] = [
-  { text: "async function ambilPreview(url) {" },
+  { text: "async function fetchPreview(url) {" },
   { text: "  const host = new URL(url).hostname;" },
   { text: "" },
   {
@@ -175,7 +168,12 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
       en: "Reject internal addresses: cloud metadata (169.254.169.254), loopback (127.0.0.1), and private ranges (10.x, 192.168.x, 172.16-31.x).",
     },
   },
-  { text: "    throw new Error('Host internal diblokir');" },
+  {
+    text: {
+      id: "    throw new Error('Host internal diblokir');",
+      en: "    throw new Error('Internal host blocked');",
+    },
+  },
   { text: "  }" },
   {
     text: "  if (!allowlist.includes(host)) {",
@@ -185,7 +183,12 @@ export const FIXED_CODE: LocalizedCodeLine[] = [
       en: "Stricter still: only allow hosts that are on the trusted list (an allowlist).",
     },
   },
-  { text: "    throw new Error('Host tidak diizinkan');" },
+  {
+    text: {
+      id: "    throw new Error('Host tidak diizinkan');",
+      en: "    throw new Error('Host not allowed');",
+    },
+  },
   { text: "  }" },
   { text: "  return await (await fetch(url)).text();" },
   { text: "}" },

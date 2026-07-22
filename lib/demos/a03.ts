@@ -1,6 +1,3 @@
-// Demo A03 Injection: SQL injection & XSS, in-memory.
-// Eksekusi skrip XSS hanya disimulasikan (dideteksi, tidak benar-benar dijalankan).
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
 
@@ -34,8 +31,6 @@ export const FLOW: Record<
   },
 };
 
-// 1) SQL INJECTION
-
 export interface DbUser {
   username: string;
   password: string;
@@ -47,13 +42,10 @@ export const DB_USERS: DbUser[] = [
   { username: "andi", password: "andi123", role: "user" },
 ];
 
-// Kueri yang dirakit dengan menyambung string (versi rentan).
 export function buildLoginQuery(username: string, password: string): string {
   return `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
 }
 
-// Mengenali pola bypass SQL klasik seperti ' OR '1'='1 atau admin' --
-// Cukup untuk tujuan edukasi, bukan parser SQL sungguhan.
 export function isSqlBypass(username: string, password: string): boolean {
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, "");
   const u = norm(username);
@@ -74,20 +66,17 @@ export type SqlResult =
   | { kind: "bypass"; user: DbUser; injected: true }
   | { kind: "fail" };
 
-// VERSI RENTAN: kredensial cocok ATAU pola injeksi membobol kueri.
 export function loginVulnerable(username: string, password: string): SqlResult {
   const match = DB_USERS.find(
     (u) => u.username === username && u.password === password,
   );
   if (match) return { kind: "success", user: match, injected: false };
   if (isSqlBypass(username, password)) {
-    // Tautologi membuat WHERE selalu benar -> baris pertama (admin) terpilih.
     return { kind: "bypass", user: DB_USERS[0], injected: true };
   }
   return { kind: "fail" };
 }
 
-// VERSI AMAN: parameter terikat, input hanya dianggap data, bukan kode.
 export function loginFixed(username: string, password: string): SqlResult {
   const match = DB_USERS.find(
     (u) => u.username === username && u.password === password,
@@ -96,18 +85,14 @@ export function loginFixed(username: string, password: string): SqlResult {
   return { kind: "fail" };
 }
 
-// 2) XSS (reflected)
-
 export type XssKind = "script" | "handler" | "uri" | "html" | "none";
 
 export interface XssAnalysis {
   kind: XssKind;
   dangerous: boolean;
-  // Pesan yang "muncul" bila skrip dijalankan, mis. dari alert('...').
   alertMessage: string | null;
 }
 
-// Menganalisis payload tanpa mengeksekusinya.
 export function analyzeXss(input: string): XssAnalysis {
   const alertMatch = input.match(/alert\(\s*['"`]?([^'"`)]*)['"`]?\s*\)/i);
   const alertMessage = alertMatch ? alertMatch[1] || "XSS" : null;
@@ -122,20 +107,23 @@ export function analyzeXss(input: string): XssAnalysis {
     return { kind: "uri", dangerous: true, alertMessage: alertMessage ?? "XSS" };
   }
   if (/<\/?[a-z][\s\S]*>/i.test(input)) {
-    // Ada tag HTML tapi tanpa skrip: injeksi HTML "jinak" (mis. <b>).
     return { kind: "html", dangerous: false, alertMessage: null };
   }
   return { kind: "none", dangerous: false, alertMessage: null };
 }
 
-// Buang seluruh tag untuk menampilkan teks yang terlihat saja (simulasi).
 export function stripTags(input: string): string {
   return input.replace(/<[^>]*>/g, "").trim();
 }
 
 export const SQL_VULN_CODE: LocalizedCodeLine[] = [
   { text: "function login(username, password) {" },
-  { text: "  // Kueri dirakit dengan menyambung string." },
+  {
+    text: {
+      id: "  // Kueri dibentuk dengan menyambung string.",
+      en: "  // Query is built by concatenating strings.",
+    },
+  },
   {
     text: "  const q = `SELECT * FROM users",
   },
@@ -172,9 +160,12 @@ export const SQL_FIXED_CODE: LocalizedCodeLine[] = [
 ];
 
 export const XSS_VULN_CODE: LocalizedCodeLine[] = [
-  { text: "function tampilkanHasil(input) {" },
+  { text: "function showResult(input) {" },
   {
-    text: "  el.innerHTML = 'Hasil untuk: ' + input;",
+    text: {
+      id: "  el.innerHTML = 'Hasil untuk: ' + input;",
+      en: "  el.innerHTML = 'Results for: ' + input;",
+    },
     highlight: "vuln",
     note: {
       id: "Input ditaruh sebagai HTML mentah lewat innerHTML. Tag <script> atau atribut seperti onerror akan dieksekusi oleh browser.",
@@ -185,9 +176,12 @@ export const XSS_VULN_CODE: LocalizedCodeLine[] = [
 ];
 
 export const XSS_FIXED_CODE: LocalizedCodeLine[] = [
-  { text: "function tampilkanHasil(input) {" },
+  { text: "function showResult(input) {" },
   {
-    text: "  el.textContent = 'Hasil untuk: ' + input;",
+    text: {
+      id: "  el.textContent = 'Hasil untuk: ' + input;",
+      en: "  el.textContent = 'Results for: ' + input;",
+    },
     highlight: "safe",
     note: {
       id: "Dengan textContent, input hanya ditampilkan sebagai teks biasa. Tag ditulis apa adanya, bukan dijalankan.",
