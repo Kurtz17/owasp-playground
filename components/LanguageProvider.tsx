@@ -37,7 +37,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
-      // localStorage bisa gagal (mode privat); abaikan saja.
     }
   }, []);
 

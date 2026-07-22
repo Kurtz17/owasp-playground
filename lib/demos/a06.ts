@@ -1,6 +1,3 @@
-// Demo A06 Vulnerable & Outdated Components: scanner CVE untuk dependency
-// package.json (usang vs tertambal). Database CVE in-memory.
-
 import type { LocalizedCodeLine } from "@/components/demo/CodeBlock";
 import type { Localized } from "../i18n";
 
@@ -8,13 +5,11 @@ export type Severity = "kritis" | "tinggi" | "sedang";
 
 export interface CveEntry {
   id: string;
-  // Rentang versi yang terdampak: semua versi < fixedIn.
   fixedIn: string;
   severity: Severity;
   summary: Localized;
 }
 
-// Database CVE sederhana, dikunci per nama paket.
 export const CVE_DB: Record<string, CveEntry[]> = {
   lodash: [
     {
@@ -78,7 +73,6 @@ export interface Dependency {
   version: string;
 }
 
-// package.json versi rentan (dependency usang).
 export const DEPS_VULN: Dependency[] = [
   { name: "next", version: "14.2.5" },
   { name: "express", version: "4.17.1" },
@@ -88,7 +82,6 @@ export const DEPS_VULN: Dependency[] = [
   { name: "react", version: "18.3.1" },
 ];
 
-// package.json versi aman (semua sudah di-update melewati fixedIn).
 export const DEPS_FIXED: Dependency[] = [
   { name: "next", version: "14.2.35" },
   { name: "express", version: "4.19.2" },
@@ -98,8 +91,6 @@ export const DEPS_FIXED: Dependency[] = [
   { name: "react", version: "18.3.1" },
 ];
 
-// Membandingkan dua versi semver sederhana (mayor.minor.patch).
-// Mengembalikan true jika `a` lebih kecil dari `b`.
 export function isVersionLessThan(a: string, b: string): boolean {
   const pa = a.split(".").map((n) => parseInt(n, 10) || 0);
   const pb = b.split(".").map((n) => parseInt(n, 10) || 0);
@@ -114,11 +105,9 @@ export function isVersionLessThan(a: string, b: string): boolean {
 
 export interface ScanRow {
   dep: Dependency;
-  // CVE yang berlaku untuk versi ini (kosong = aman).
   matches: CveEntry[];
 }
 
-// Memindai daftar dependency terhadap database CVE.
 export function scan(deps: Dependency[]): ScanRow[] {
   return deps.map((dep) => {
     const known = CVE_DB[dep.name] ?? [];

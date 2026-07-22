@@ -1,6 +1,3 @@
-// Sumber data tunggal untuk 10 modul OWASP Top 10 (2021); dibaca oleh sidebar,
-// landing, dan routing. Field bertipe Localized punya versi { id, en }.
-
 import type { Localized } from "./i18n";
 
 export type Difficulty = "Pemula" | "Menengah" | "Lanjutan";
@@ -12,18 +9,12 @@ export interface TheorySection {
 }
 
 export interface OwaspModule {
-  // Kode OWASP, mis. "A01"
   code: string;
-  // Slug URL, dipakai di /module/[slug]
   slug: string;
-  // Istilah baku, sama di kedua bahasa (tidak di-Localize)
   name: string;
-  // Nama singkat untuk sidebar
   shortName: string;
-  // Deskripsi satu kalimat untuk kartu landing
   description: Localized;
   difficulty: Difficulty;
-  // Estimasi waktu belajar
   estimatedTime: Localized;
   status: ModuleStatus;
   theory: TheorySection[];
@@ -546,8 +537,6 @@ export function getAvailableModules(): OwaspModule[] {
   return MODULES.filter((m) => m.status === "tersedia");
 }
 
-// Meta tingkat kesulitan. `dotClass` dipakai sebagai warna titik kecil
-// di depan label (bukan badge berkotak).
 export const DIFFICULTY_META: Record<
   Difficulty,
   { label: Localized; dotClass: string }
