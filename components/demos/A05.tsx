@@ -135,8 +135,6 @@ function ScenarioSwitch({
   );
 }
 
-// Scenario 1: kredensial default
-
 function CredsLab({ mode }: { mode: Mode }) {
   const { t } = useLang();
   const [u, setU] = useState("admin");
@@ -223,8 +221,6 @@ function CredsResult({ result }: { result: LoginResult }) {
   );
 }
 
-// Scenario 2: pesan error verbose
-
 function ErrorsLab({ mode }: { mode: Mode }) {
   const { t } = useLang();
   const [shown, setShown] = useState(false);
@@ -257,8 +253,6 @@ function ErrorsLab({ mode }: { mode: Mode }) {
     </div>
   );
 }
-
-// Scenario 3: file sensitif terekspos
 
 function FilesLab({ mode }: { mode: Mode }) {
   const { t } = useLang();

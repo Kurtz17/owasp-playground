@@ -10,9 +10,6 @@ import { A08Fixed, A08Vulnerable } from "./A08";
 import { A09Fixed, A09Vulnerable } from "./A09";
 import { A10Fixed, A10Vulnerable } from "./A10";
 
-// Registry demo interaktif per modul. Kunci = slug modul.
-// Modul yang belum punya demo tidak terdaftar di sini dan otomatis
-// menampilkan placeholder di ModulePage.
 interface DemoEntry {
   Vulnerable: ComponentType;
   Fixed: ComponentType;

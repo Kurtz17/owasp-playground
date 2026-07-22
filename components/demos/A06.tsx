@@ -59,7 +59,6 @@ function ScannerLab({ mode }: { mode: Mode }) {
   const [rows, setRows] = useState<ScanRow[] | null>(null);
   const [revealed, setRevealed] = useState(0);
 
-  // Ungkap hasil scan baris demi baris agar terasa seperti proses memindai.
   useEffect(() => {
     if (!rows) return;
     if (revealed >= rows.length) return;

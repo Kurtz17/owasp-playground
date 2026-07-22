@@ -24,7 +24,6 @@ import { useLang } from "@/components/LanguageProvider";
 type Mode = "vuln" | "fixed";
 type Attack = "sql" | "xss";
 
-// Kerangka A03: pilih jenis serangan lalu tampilkan lab yang sesuai.
 function A03Lab({ mode }: { mode: Mode }) {
   const { t } = useLang();
   const [attack, setAttack] = useState<Attack>("sql");
@@ -134,8 +133,6 @@ function AttackSwitch({
   );
 }
 
-// SQL Injection lab
-
 function SqlLab({ mode }: { mode: Mode }) {
   const { t } = useLang();
   const [username, setUsername] = useState("admin");
@@ -210,7 +207,6 @@ function SqlLab({ mode }: { mode: Mode }) {
   );
 }
 
-// Tampilkan kueri final: versi rentan menyambung string, versi aman terikat.
 function sqlQueryView(u: string, p: string, mode: Mode) {
   if (mode === "vuln") {
     return [{ text: buildLoginQuery(u, p), highlight: "vuln" as const }];
@@ -272,8 +268,6 @@ function SqlResultView({ result }: { result: SqlResult }) {
     </div>
   );
 }
-
-// XSS lab
 
 function XssLab({ mode }: { mode: Mode }) {
   const { t } = useLang();
@@ -375,14 +369,12 @@ function XssPreview({
                 })}
               </span>
             ) : (
-              // Injeksi HTML jinak: tampilkan teks yang terlihat.
               <span className="font-semibold text-cream">
                 {stripTags(raw) || raw}
               </span>
             )}
           </p>
         ) : (
-          // Versi aman: input di-escape, tampil apa adanya sebagai teks.
           <p className="text-[14px] text-cream">
             {t({ id: "Hasil untuk: ", en: "Results for: " })}
             <span className="font-mono text-cream-dim">{raw}</span>

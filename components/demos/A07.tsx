@@ -134,14 +134,11 @@ function ScenarioSwitch({
   );
 }
 
-// Brute-force lab (dengan animasi pengungkapan percobaan)
-
 function BruteForceLab({ mode }: { mode: Mode }) {
   const { t } = useLang();
   const [run, setRun] = useState<BruteForceRun | null>(null);
   const [revealed, setRevealed] = useState(0);
 
-  // Ungkap percobaan satu per satu agar terasa seperti serangan berjalan.
   useEffect(() => {
     if (!run) return;
     if (revealed >= run.attempts.length) return;
@@ -288,8 +285,6 @@ function BruteForceVerdict({ run }: { run: BruteForceRun }) {
   );
 }
 
-// Password policy lab (meter kekuatan)
-
 const CHECK_LABELS: {
   key: keyof PasswordChecks;
   label: { id: string; en: string };
@@ -318,7 +313,6 @@ function PasswordPolicyLab({ mode }: { mode: Mode }) {
   );
 
   const strength = analyzePassword(pw);
-  // "Kuat" = memenuhi syarat inti (panjang, campuran huruf, angka, tak umum).
   const strongEnough =
     strength.checks.length &&
     strength.checks.upperLower &&
@@ -451,7 +445,6 @@ function PolicyVerdict({
   );
 }
 
-// Ringkasan aturan kebijakan (dipakai sebagai panel "kode" untuk skenario policy).
 function PolicyRulesNote() {
   const { t } = useLang();
   return (

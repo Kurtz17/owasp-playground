@@ -57,7 +57,6 @@ function MonitoringLab({ mode }: { mode: Mode }) {
   const [detection, setDetection] = useState<Detection | null>(null);
   const [revealed, setRevealed] = useState(0);
 
-  // Ungkap peristiwa satu per satu agar terasa seperti serangan berjalan.
   useEffect(() => {
     if (!detection) return;
     if (revealed >= EVENTS.length) return;

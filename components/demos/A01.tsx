@@ -20,8 +20,6 @@ import { useLang } from "@/components/LanguageProvider";
 
 type Mode = "vuln" | "fixed";
 
-// Lab bersama untuk kedua tab A01. Bedanya hanya fungsi yang dipanggil
-// (rentan vs aman) dan cara menampilkan hasilnya.
 function AccountLab({ mode }: { mode: Mode }) {
   const { t } = useLang();
   const me = getSessionUser();
@@ -155,7 +153,6 @@ function ResultView({
     );
   }
 
-  // kind === "ok"
   const { account, leaked } = result;
   const tone = leaked ? "vuln" : "safe";
   const status = leaked

@@ -57,7 +57,6 @@ function CrackLab({ mode }: { mode: Mode }) {
   const [results, setResults] = useState<CrackResult[] | null>(null);
   const [revealed, setRevealed] = useState(0);
 
-  // Ungkap hasil crack baris demi baris agar terasa seperti proses berjalan.
   useEffect(() => {
     if (!results) return;
     if (revealed >= results.length) return;

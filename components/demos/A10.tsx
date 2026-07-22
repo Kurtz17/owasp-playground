@@ -178,7 +178,6 @@ function SsrfResultView({
     );
   }
 
-  // kind === "ok"
   const { response } = result;
   const leaked = mode === "vuln" && response.sensitive;
 
